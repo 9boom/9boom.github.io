@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>~/portfolio — พอร์ตฟอลิโอ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b0e;
+    --panel: #121317;
+    --panel-alt: #191b20;
+    --border: #2a2d34;
+    --border-soft: #1e2025;
+    --text: #e7e9ec;
+    --text-dim: #8b919c;
+    --text-faint: #565b64;
+    --accent: #ffb020;
+    --accent-dim: #b8802e;
+    --accent-soft: rgba(255,176,32,0.10);
+    --ok: #5fd97a;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --thai: 'IBM Plex Sans Thai', sans-serif;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; border-radius:0 !important; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--thai);
+    font-size:16px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:#0a0b0e; }
+
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+
+  .mono{ font-family:var(--mono); }
+
+  /* ---------- background grid texture ---------- */
+  .bg-grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 90%);
+  }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 28px; position:relative; z-index:1; }
+
+  /* ---------- nav ---------- */
+  header.nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    background:rgba(10,11,14,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .nav-inner{
+    max-width:1080px; margin:0 auto; padding:16px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .nav-path{
+    font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    display:flex; align-items:center; gap:8px;
+  }
+  .nav-path .dot{ width:7px; height:7px; background:var(--ok); display:inline-block; box-shadow:0 0 6px var(--ok); }
+  .nav-links{ display:flex; gap:28px; font-family:var(--mono); font-size:13px; }
+  .nav-links a{ color:var(--text-dim); transition:color .15s; position:relative; }
+  .nav-links a:hover{ color:var(--accent); }
+  .nav-links a::before{ content:'./'; color:var(--text-faint); }
+  .nav-toggle{ display:none; }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:150px 0 90px;
+    position:relative; z-index:1;
+  }
+  .terminal{
+    background:var(--panel);
+    border:1px solid var(--border);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.4), 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--panel-alt);
+  }
+  .terminal-bar span{ width:10px; height:10px; background:var(--border); display:inline-block; }
+  .terminal-bar .path{ margin-left:12px; font-family:var(--mono); font-size:12px; color:var(--text-faint); }
+  .terminal-body{
+    padding:28px 26px 32px;
+    font-family:var(--mono); font-size:15px; color:var(--text-dim);
+  }
+  .terminal-body .line{ margin-bottom:6px; white-space:pre-wrap; }
+  .terminal-body .prompt{ color:var(--ok); }
+  .terminal-body .prompt::after{ content:' $ '; color:var(--text-faint); }
+  .terminal-body .out{ color:var(--text); }
+  .cursor{
+    display:inline-block; width:8px; height:16px; background:var(--accent);
+    vertical-align:-3px; animation:blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .hero-title{
+    margin-top:44px;
+    font-family:var(--mono);
+    font-size:clamp(32px, 6vw, 58px);
+    font-weight:600;
+    line-height:1.15;
+    letter-spacing:-0.01em;
+  }
+  .hero-title .accent{ color:var(--accent); }
+  .hero-sub{
+    margin-top:20px;
+    max-width:640px;
+    font-size:18px;
+    color:var(--text-dim);
+    font-weight:300;
+  }
+  .hero-stats{
+    margin-top:44px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--border);
+  }
+  .hero-stats div{
+    padding:20px 18px;
+    border-right:1px solid var(--border);
+  }
+  .hero-stats div:last-child{ border-right:none; }
+  .hero-stats .num{ font-family:var(--mono); font-size:26px; color:var(--accent); font-weight:600; }
+  .hero-stats .lbl{ margin-top:4px; font-size:13px; color:var(--text-dim); }
+
+  /* ---------- section shell ---------- */
+  section{ position:relative; z-index:1; padding:100px 0; border-top:1px solid var(--border-soft); }
+  .eyebrow{
+    font-family:var(--mono); font-size:13px; color:var(--accent);
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{ content:'#'; color:var(--text-faint); }
+  h2.section-title{
+    font-family:var(--mono); font-size:clamp(26px,4vw,36px); font-weight:600;
+    margin-bottom:16px; letter-spacing:-0.01em;
+  }
+  .section-desc{ max-width:640px; color:var(--text-dim); font-size:16px; margin-bottom:56px; font-weight:300; }
+
+  /* ---------- about / stack ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.1fr 1fr; gap:56px; }
+  .about-text p{ color:var(--text-dim); margin-bottom:16px; font-weight:300; }
+  .about-text strong{ color:var(--text); font-weight:600; }
+  .stack-list{ border:1px solid var(--border); }
+  .stack-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 20px; border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:14px;
+  }
+  .stack-row:last-child{ border-bottom:none; }
+  .stack-row .k{ color:var(--text-dim); }
+  .stack-row .v{ color:var(--text); }
+
+  /* ---------- projects: file listing ---------- */
+  .listing-head{
+    display:grid; grid-template-columns: 70px 1fr 160px 120px;
+    padding:10px 20px;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+    border:1px solid var(--border); border-bottom:none;
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .file{
+    border:1px solid var(--border);
+    border-top:none;
+    background:var(--panel);
+  }
+  .file:first-of-type{ border-top:1px solid var(--border); }
+  .file-row{
+    display:grid; grid-template-columns: 70px 1fr 160px 120px;
+    align-items:center;
+    padding:20px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  .file-row:hover{ background:var(--panel-alt); }
+  .file-row .idx{ font-family:var(--mono); color:var(--text-faint); font-size:13px; }
+  .file-name{ display:flex; flex-direction:column; gap:5px; }
+  .file-name .n{ font-family:var(--mono); font-size:16px; color:var(--text); font-weight:600; }
+  .file-name .n .ext{ color:var(--accent); }
+  .file-name .tag{ font-size:13px; color:var(--text-dim); font-weight:300; }
+  .file-type{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .file-type .badge{
+    display:inline-block; border:1px solid var(--border); padding:3px 8px;
+    color:var(--text-dim);
+  }
+  .file-stat{ font-family:var(--mono); font-size:13px; color:var(--accent); text-align:right; }
+  .file-toggle{ font-family:var(--mono); color:var(--text-faint); text-align:right; }
+
+  .file-detail{
+    max-height:0; overflow:hidden;
+    transition:max-height .35s ease, padding .35s ease;
+    border-top:1px solid var(--border-soft);
+  }
+  .file.open .file-detail{ max-height:520px; }
+  .file-detail-inner{ padding:26px 20px 30px; }
+  .file-detail-inner p{ color:var(--text-dim); font-weight:300; max-width:680px; margin-bottom:14px; }
+  .file-detail-inner .meta{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;
+  }
+  .file-detail-inner .meta span{
+    font-family:var(--mono); font-size:12px; color:var(--text-dim);
+    border:1px solid var(--border); padding:5px 10px;
+  }
+  .file-detail-inner .meta span b{ color:var(--accent); font-weight:600; }
+
+  .file-row .file-toggle .chev{ display:inline-block; transition:transform .25s; }
+  .file.open .file-toggle .chev{ transform:rotate(90deg); color:var(--accent); }
+
+  /* ---------- contact ---------- */
+  .contact-term{
+    background:var(--panel); border:1px solid var(--border);
+  }
+  .contact-body{ padding:32px 28px; font-family:var(--mono); font-size:15px; }
+  .contact-body .line{ margin-bottom:14px; color:var(--text-dim); }
+  .contact-body .k{ color:var(--ok); }
+  .contact-body .v{ color:var(--text); }
+  .contact-note{
+    margin-top:10px; font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+
+  footer{
+    padding:36px 0 46px;
+    border-top:1px solid var(--border-soft);
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+    display:flex; justify-content:space-between;
+  }
+
+  /* ---------- reveal ---------- */
+  .reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.show{ opacity:1; transform:translateY(0); }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+    .cursor{ animation:none; }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px){
+    .about-grid{ grid-template-columns:1fr; gap:36px; }
+    .hero-stats{ grid-template-columns:repeat(2,1fr); }
+    .hero-stats div:nth-child(2){ border-right:none; }
+  }
+  @media (max-width: 680px){
+    .nav-links{ display:none; }
+    .listing-head{ display:none; }
+    .file-row{ grid-template-columns: 1fr auto; grid-template-areas: "name toggle" "type stat"; row-gap:10px; }
+    .file-row .idx{ display:none; }
+    .file-name{ grid-area:name; }
+    .file-toggle{ grid-area:toggle; }
+    .file-type{ grid-area:type; }
+    .file-stat{ grid-area:stat; text-align:left; }
+    .hero{ padding-top:120px; }
+    section{ padding:70px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-path"><span class="dot"></span> ~/portfolio</div>
+    <nav class="nav-links">
+      <a href="#about">about</a>
+      <a href="#projects">projects</a>
+      <a href="#contact">contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" style="border-top:none; padding-top:150px;">
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <span></span><span></span><span></span>
+        <span class="path">student@portfolio: ~</span>
+      </div>
+      <div class="terminal-body" id="typeTarget"></div>
+    </div>
+
+    <h1 class="hero-title reveal">
+      นักเรียนที่สร้างของจริง<br>
+      จาก<span class="accent">โจทย์รอบตัว</span>
+    </h1>
+    <p class="hero-sub reveal">
+      พอร์ตฟอลิโอรวมผลงานที่ลงมือทำจริง ตั้งแต่เว็บแอปพลิเคชันเพื่อสังคม
+      เครื่องมือสำหรับนักพัฒนา ไปจนถึงระบบ IoT — ทุกโปรเจกต์เกิดจากปัญหาที่เจอเอง
+      แล้วลงมือแก้ด้วยโค้ด
+    </p>
+
+    <div class="hero-stats reveal">
+      <div><div class="num">7</div><div class="lbl">โปรเจกต์ที่ลงมือทำ</div></div>
+      <div><div class="num">2,000+</div><div class="lbl">Facebook likes จากโปรเจกต์ช่วยเหลือภัยพิบัติ</div></div>
+      <div><div class="num">13</div><div class="lbl">GitHub stars จากชุมชนต่างประเทศ</div></div>
+      <div><div class="num">1</div><div class="lbl">ใบรับรองจากงานภาคสนามจริง</div></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="eyebrow reveal">about</div>
+    <h2 class="section-title reveal">เขียนโค้ดเพื่อแก้ปัญหา<br>ที่มองเห็นตรงหน้า</h2>
+
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>
+          ผมเริ่มต้นจากการ<strong>ไม่มีคอมพิวเตอร์</strong> — ใช้มือถือเครื่องเดียวสร้างเกม
+          และเมื่อเครื่องมือที่มีอยู่ไม่ตอบโจทย์ ก็เขียนเครื่องมือขึ้นมาเอง
+          จนกลายเป็นซอฟต์แวร์ที่คนในชุมชนนักพัฒนาทั่วโลกดาวน์โหลดไปใช้
+        </p>
+        <p>
+          งานส่วนใหญ่ในพอร์ตนี้ไม่ได้เกิดจากโจทย์ในห้องเรียนเพียงอย่างเดียว
+          แต่เกิดจาก<strong>สถานการณ์จริง</strong> — ภัยพิบัติที่อยากให้คนช่วยกันได้เร็วขึ้น
+          เพื่อนนักเรียนทุนที่ต้องใช้ระบบจ่ายอาหารกลางวัน
+          หรือธุรกิจท้องถิ่นที่ยังไม่มีระบบเก็บสถิติ
+        </p>
+        <p>
+          ผมเชื่อว่าโปรเจกต์ที่ดีที่สุด คือโปรเจกต์ที่มี <strong>คนใช้งานจริง</strong>
+          แม้จะไม่สมบูรณ์แบบ — และทุกครั้งที่โค้ดพัง ก็เป็นบทเรียนที่ทำให้เขียนได้ดีขึ้น
+        </p>
+      </div>
+
+      <div class="stack-list reveal">
+        <div class="stack-row"><span class="k">web_development</span><span class="v">แอปพลิเคชันและเว็บไซต์</span></div>
+        <div class="stack-row"><span class="k">hardware_iot</span><span class="v">ESP32 / เซนเซอร์ / เว็บเซิร์ฟเวอร์</span></div>
+        <div class="stack-row"><span class="k">developer_tools</span><span class="v">CLI tools / open source</span></div>
+        <div class="stack-row"><span class="k">community</span><span class="v">แพลตฟอร์มรวมคนและสถาบัน</span></div>
+        <div class="stack-row"><span class="k">status</span><span class="v" style="color:var(--ok)">available_for_opportunities</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="eyebrow reveal">projects</div>
+    <h2 class="section-title reveal">ls ./ผลงาน</h2>
+    <p class="section-desc reveal">
+      คลิกที่แต่ละไฟล์เพื่อดูรายละเอียดโปรเจกต์ — เรียงตามลำดับที่ทำ ไม่ใช่ลำดับความสำคัญ
+    </p>
+
+    <div class="listing-head reveal">
+      <span>no.</span><span>project</span><span>type</span><span>stat</span>
+    </div>
+
+    <div id="fileList"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="eyebrow reveal">contact</div>
+    <h2 class="section-title reveal">ติดต่อได้ทุกช่องทาง</h2>
+    <p class="section-desc reveal">สนใจร่วมงาน แลกเปลี่ยนไอเดีย หรืออยากรู้รายละเอียดโปรเจกต์เพิ่มเติม ทักมาได้เลย</p>
+
+    <div class="contact-term reveal">
+      <div class="terminal-bar">
+        <span></span><span></span><span></span>
+        <span class="path">contact --info</span>
+      </div>
+      <div class="contact-body">
+        <div class="line"><span class="k">email</span> &nbsp;&nbsp;→ <span class="v">your-email@example.com</span></div>
+        <div class="line"><span class="k">github</span> &nbsp;→ <span class="v">github.com/your-username</span></div>
+        <div class="line"><span class="k">phone</span> &nbsp;→ <span class="v">0XX-XXX-XXXX</span></div>
+        <div class="line"><span class="k">line</span> &nbsp;&nbsp;→ <span class="v">@your-line-id</span></div>
+        <div class="contact-note">&lt;!-- แก้ไขข้อมูลติดต่อในบล็อกนี้ก่อนเผยแพร่จริง --&gt;</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <span>© portfolio — built with ❤ and semicolons</span>
+  <span>no border-radius, by design</span>
+</footer>
+
+<script>
+  // ---------- typing effect ----------
+  const lines = [
+    { p:true, t:'whoami' },
+    { p:false, t:'นักเรียนที่ชอบแก้ปัญหาด้วยโค้ด' },
+    { p:true, t:'cat mission.txt' },
+    { p:false, t:'สร้างเครื่องมือและระบบที่คนใช้งานได้จริง' },
+    { p:true, t:'ls ./ผลงาน --count' },
+    { p:false, t:'7 โปรเจกต์ พร้อมให้สำรวจด้านล่าง ↓' },
+  ];
+  const target = document.getElementById('typeTarget');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function renderStatic(){
+    target.innerHTML = lines.map(l =>
+      `<div class="line ${l.p ? 'prompt' : 'out'}">${l.t}</div>`
+    ).join('');
+  }
+
+  async function typeLines(){
+    if(prefersReduced){ renderStatic(); return; }
+    for(const l of lines){
+      const div = document.createElement('div');
+      div.className = 'line ' + (l.p ? 'prompt' : 'out');
+      target.appendChild(div);
+      for(let i=0;i<=l.t.length;i++){
+        div.textContent = l.t.slice(0,i);
+        await new Promise(r=>setTimeout(r, l.p ? 28 : 14));
+      }
+      await new Promise(r=>setTimeout(r, 120));
+    }
+    const cur = document.createElement('span');
+    cur.className = 'cursor';
+    target.appendChild(cur);
+  }
+  typeLines();
+
+  // ---------- project data ----------
+  const projects = [
+    {
+      name: 'promchuay',
+      ext: '.app',
+      tag: 'เว็บแอปให้ผู้ประสบภัยรายงานตำแหน่งตัวเองขึ้นแผนที่ให้กู้ภัยเห็น',
+      type: 'web app',
+      stat: '2,000 likes',
+      desc: `เว็บแอปพลิเคชันสำหรับให้ผู้ประสบภัยรายงานตำแหน่งของตัวเอง เพื่อให้ทีมกู้ภัยเห็นตำแหน่งบนแผนที่และเข้าช่วยเหลือได้เร็วขึ้น
+        ผมโพสต์โปรเจกต์นี้ลง Facebook พร้อมเปิดซอร์สโค้ดทั้งหมด ได้รับความสนใจกว่า 2,000 likes และคอมเมนต์ให้กำลังใจหลายร้อยคอมเมนต์
+        แม้จากฟีดแบ็กหลายด้านโปรเจกต์นี้ยังใช้งานได้ไม่สมบูรณ์ในทางปฏิบัติ แต่ก็เป็นจุดเริ่มต้นที่สอนให้ผมเข้าใจว่าการออกแบบระบบเพื่อสถานการณ์ฉุกเฉินจริงต้องคิดรอบด้านกว่าที่คิด`,
+      meta: ['engagement: 2000+ likes', 'เปิด source code สาธารณะ', 'โจทย์: ภัยพิบัติ']
+    },
+    {
+      name: 'taxi-track',
+      ext: '.sys',
+      tag: 'ระบบบันทึกรถแท็กซี่เข้า-ออก และสถิติการตลาด ให้สนามแข่ง go-kart',
+      type: 'business system',
+      stat: 'ได้ใบรับรอง',
+      desc: `อดีตนายอำเภอกะทู้ ผู้จบปริญญาเอกและเป็นเจ้าของสนามแข่งรถ go-kart ชวนผมมาพัฒนาระบบสำหรับบันทึกการเข้า-ออกของรถแท็กซี่ที่ส่งลูกค้ามาที่สนาม
+        พร้อมทำสถิติทางการตลาดให้บริษัทใช้ประกอบการตัดสินใจ เป็นโอกาสแรกที่ผมได้ทำงานร่วมกับธุรกิจจริงนอกห้องเรียน และได้รับใบรับรองจากการทำงานครั้งนี้`,
+      meta: ['ผู้ว่าจ้าง: เจ้าของธุรกิจสนามแข่ง go-kart', 'ผลลัพธ์: ใบรับรองการทำงาน', 'โจทย์: ธุรกิจท้องถิ่น']
+    },
+    {
+      name: 'schoolpay',
+      ext: '.app',
+      tag: 'แอปสแกนจ่ายค่าอาหารกลางวันสำหรับนักเรียนทุน วงเงิน 50 บาท/วัน',
+      type: 'web app',
+      stat: 'ใช้จริงในโรงเรียน',
+      desc: `แอปพลิเคชันสำหรับนักเรียนทุนในโรงเรียนของผมเอง ใช้สแกนจ่ายค่าอาหารกลางวันฟรีในวงเงิน 50 บาทต่อวัน
+        พัฒนาขึ้นเพื่อให้เพื่อนนักเรียนที่ได้รับทุนการศึกษาใช้งานได้สะดวกและตรวจสอบยอดใช้จ่ายได้ง่าย โดยเก็บข้อมูลตรงกับกลุ่มเป้าหมายที่ใช้จริงในโรงเรียน`,
+      meta: ['ผู้ใช้งาน: นักเรียนทุนในโรงเรียน', 'วงเงิน: 50 บาท/วัน', 'โจทย์: สวัสดิการนักเรียน']
+    },
+    {
+      name: 'godot-android-exporter',
+      ext: '.cli',
+      tag: 'เครื่องมือบรรทัดคำสั่งแปลงโปรเจกต์ Godot ให้เป็นไฟล์ .apk ติดตั้งได้ทันที',
+      type: 'developer tool',
+      stat: '★ 13 บน GitHub',
+      desc: `ก่อนหน้านี้ผมไม่มีคอมพิวเตอร์ จึงใช้มือถือสร้างเกมด้วย Godot Engine แต่เวอร์ชันมือถือของ Godot ไม่มีปุ่ม export เป็น .apk
+        ผมจึงสร้างเครื่องมือบรรทัดคำสั่ง (CLI) ขึ้นมาเองเพื่อแปลงไฟล์โปรเจกต์ Godot (.zip) ให้กลายเป็นไฟล์ .apk พร้อมติดตั้ง
+        แล้วนำไปเผยแพร่แบบโอเพนซอร์สในกลุ่ม Godot community ต่างประเทศ ได้รับคำชมจากนักพัฒนาต่างชาติ และมีผู้กด star ให้บน GitHub ถึง 13 ดวง ซึ่งสำหรับผมถือว่ามากมาย`,
+      meta: ['GitHub stars: 13', 'เผยแพร่แบบโอเพนซอร์ส', 'สร้างขึ้นจากข้อจำกัดเรื่องอุปกรณ์']
+    },
+    {
+      name: 'auto-watering',
+      ext: '.iot',
+      tag: 'ระบบรดน้ำอัตโนมัติด้วย ESP32 ควบคุมผ่านเว็บเซิร์ฟเวอร์ตามค่าเซนเซอร์',
+      type: 'hardware / IoT',
+      stat: 'นำเสนอใน Open House',
+      desc: `โปรเจกต์วิชา IS (Independent Study) ใช้บอร์ด ESP32 ร่วมกับเซนเซอร์วัดความชื้นในดิน ความเข้มแสง และเวลา
+        เพื่อควบคุมการรดน้ำต้นไม้แบบอัตโนมัติตามเงื่อนไขที่ตั้งไว้ ควบคุมและตรวจสอบสถานะผ่านเว็บเซิร์ฟเวอร์ที่พัฒนาขึ้นเอง
+        นำไปจัดแสดงในงาน Open House ของโรงเรียน`,
+      meta: ['ฮาร์ดแวร์: ESP32', 'เซนเซอร์: ความชื้น / แสง / เวลา', 'ควบคุมผ่าน web server']
+    },
+    {
+      name: 'laan-social',
+      ext: '.platform',
+      tag: 'แพลตฟอร์มรวมทุกสถาบันมหาวิทยาลัยในไทย ให้คนมาพูดคุยแลกเปลี่ยนกันในที่เดียว',
+      type: 'community platform',
+      stat: 'laan.social',
+      desc: `“ลาน” คือเว็บไซต์ที่รวมสถาบันมหาวิทยาลัยทุกแห่งในประเทศไทยไว้ในที่เดียว เปิดพื้นที่ให้คนเข้ามาพูดคุยและแลกเปลี่ยนกันได้อย่างอิสระ
+        แนวคิดคล้าย IRC chat ยุคแรกของโลกอินเทอร์เน็ต ที่ทุกคนมารวมตัวคุยกันได้ทุกเรื่อง เปรียบเหมือนลานกว้างที่ทุกคนมาพบปะกัน จึงเป็นที่มาของชื่อ “ลาน”`,
+      meta: ['โดเมน: laan.social', 'แรงบันดาลใจ: IRC chat', 'เป้าหมาย: รวมนักศึกษาทุกสถาบัน']
+    },
+    {
+      name: 'zemio',
+      ext: '.app',
+      tag: 'เว็บฝึกสัมภาษณ์เข้ามหาวิทยาลัยรอบพอร์ตฟอลิโอ ด้วย AI Video Call',
+      type: 'web app / AI',
+      stat: 'ส่งแข่ง TICTA',
+      desc: `Zemio เป็นเว็บไซต์สำหรับฝึกสัมภาษณ์เข้ามหาวิทยาลัยในรอบพอร์ตฟอลิโอ โดยใช้ AI Video Call จำลองสถานการณ์สัมภาษณ์จริง
+        ให้ผู้ใช้ได้ฝึกตอบคำถามและรับฟีดแบ็กก่อนสอบสัมภาษณ์จริง โปรเจกต์นี้นำไปส่งแข่งขันในเวที TICTA แต่ไม่ผ่านรอบคัดเลือกผลงานสมัคร
+        ถือเป็นบทเรียนสำคัญเรื่องการเตรียมความพร้อมให้ผลงานตรงตามเกณฑ์การประกวด`,
+      meta: ['เทคโนโลยี: AI Video Call', 'เวที: TICTA', 'สถานะ: ไม่ผ่านรอบสมัครผลงาน']
+    },
+  ];
+
+  const list = document.getElementById('fileList');
+  projects.forEach((p, i) => {
+    const file = document.createElement('div');
+    file.className = 'file reveal';
+    file.innerHTML = `
+      <div class="file-row" data-idx="${i}">
+        <div class="idx">${String(i+1).padStart(2,'0')}</div>
+        <div class="file-name">
+          <div class="n">${p.name}<span class="ext">${p.ext}</span></div>
+          <div class="tag">${p.tag}</div>
+        </div>
+        <div class="file-type"><span class="badge">${p.type}</span></div>
+        <div class="file-stat">${p.stat}</div>
+        <div class="file-toggle"><span class="chev">›</span></div>
+      </div>
+      <div class="file-detail">
+        <div class="file-detail-inner">
+          <p>${p.desc.trim().replace(/\n\s+/g,' ')}</p>
+          <div class="meta">${p.meta.map(m=>`<span>${m}</span>`).join('')}</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(file);
+    file.querySelector('.file-row').addEventListener('click', () => {
+      file.classList.toggle('open');
+    });
+  });
+
+  // ---------- reveal on scroll ----------
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+
+</body>
+</html>
