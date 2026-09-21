@@ -261,6 +261,131 @@
     .details-videos { grid-template-columns: 1fr; }
   }
 
+  /* ---------- gallery รูประหว่างทำชิ้นงาน ---------- */
+  .wip-gallery { margin-top: clamp(20px, 3vw, 32px); }
+  .wip-gallery.is-empty { display: none; }
+
+  .wip-gallery-title {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .wip-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 900px) { .wip-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 480px) { .wip-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .wip-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--cell);
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 120ms linear;
+  }
+  .wip-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.85) contrast(1.02);
+    transition: transform 200ms linear, filter 150ms linear;
+  }
+  .wip-thumb:hover { border-color: var(--sky); }
+  .wip-thumb:hover img { transform: scale(1.08); filter: none; }
+  .wip-thumb:focus-visible {
+    outline: 1px solid var(--sky);
+    outline-offset: -3px;
+  }
+
+  /* ---------- hologram viewer ---------- */
+  .wip-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 6vw, 64px);
+    background: radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.10), rgba(0, 0, 0, 0.88) 70%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms linear;
+  }
+  .wip-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+  .wip-overlay-close {
+    position: absolute;
+    top: clamp(14px, 3vw, 28px);
+    right: clamp(14px, 3vw, 28px);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cell);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 120ms linear, border-color 120ms linear;
+  }
+  .wip-overlay-close:hover { color: var(--sky); border-color: var(--sky); }
+  .wip-overlay-close:focus-visible { outline: 1px solid var(--sky); outline-offset: -3px; }
+
+  .wip-overlay-figure {
+    position: relative;
+    max-width: min(90vw, 920px);
+    max-height: 84vh;
+    animation: holo-float 4.5s ease-in-out infinite;
+  }
+  @keyframes holo-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+  }
+
+  .wip-overlay-figure::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(56, 189, 248, 0.07) 0px,
+      rgba(56, 189, 248, 0.07) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+
+  .wip-overlay-img {
+    display: block;
+    max-width: 100%;
+    max-height: 84vh;
+    width: auto;
+    height: auto;
+    background: #000;
+    border: 1px solid rgba(56, 189, 248, 0.55);
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.25),
+      0 0 40px rgba(56, 189, 248, 0.35),
+      0 0 110px rgba(56, 189, 248, 0.20);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wip-overlay-figure { animation: none; }
+  }
+
   @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) {
     .top { gap: 12px; }
@@ -297,33 +422,46 @@
     <button type="button" class="back-btn" id="backBtn"><span aria-hidden="true">&larr;</span><span id="backText"></span></button>
     <h2 class="details-header"><span class="details-prompt">&gt;</span><span id="detailsName"></span><span class="cursor on" id="cursorDetails"></span></h2>
     <div class="details-videos is-empty" id="detailsVideos"></div>
+    <div class="wip-gallery is-empty" id="detailsGallery">
+      <div class="wip-gallery-title" id="galleryTitle"></div>
+      <div class="wip-grid" id="galleryGrid"></div>
+    </div>
   </section>
 
+</div>
+
+<div class="wip-overlay" id="wipOverlay">
+  <button type="button" class="wip-overlay-close" id="wipOverlayClose" aria-label="Close">&times;</button>
+  <figure class="wip-overlay-figure">
+    <img class="wip-overlay-img" id="wipOverlayImg" src="" alt="">
+  </figure>
 </div>
 
 <script>
   /* ---------- ข้อความ 2 ภาษา (แก้ชื่อโปรเจคได้ตรงนี้) ---------- */
   const TEXT = {
-    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ" },
-    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back" }
+    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน" },
+    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos" }
   };
 
   // name = ชื่อหลัก (ไม่เปลี่ยนตามภาษา) / th, en = ชื่อรองที่เปลี่ยนตามภาษา
+  // slug = รหัสย่อ ใช้กับ URL แบบ ?redirect=<slug> เพื่อเข้าถึงโปรเจคนี้ได้ทันที
   const PROJECTS = [
-    { id: "zemio",                  name: "Zemio",
+    { id: "zemio",                  name: "Zemio",                          slug: "zemio",
       th: "เว็บฝึกสัมภาษณ์เข้ามหาวิทยาลัยด้วย AI",   en: "AI university interview practice" },
-    { id: "laan-social",            name: "laan.social",
+    { id: "laan-social",            name: "laan.social",                    slug: "laan",
       th: "ลาน ดอท โซเชียล",                          en: "Social platform for Thai university students" },
-    { id: "schoolpay",              name: "SchoolPay",
+    { id: "schoolpay",              name: "SchoolPay",                      slug: "pay",
       th: "เว็บแอปทุนอาหารกลางวัน",                   en: "School lunch fund web app" },
-    { id: "godot-android-exporter", name: "Godot Android Exporter",
+    { id: "godot-android-exporter", name: "Godot Android Exporter",         slug: "godot",
       th: "เครื่องมือ CLI แปลงโปรเจค Godot เป็น APK",  en: "CLI tool to export Godot projects to APK" },
-    { id: "promptchuay",            name: "PromptChuay",
+    { id: "promptchuay",            name: "PromptChuay",                    slug: "prompt",
       th: "แอปพลิเคชันรายงานผู้ประสบภัย",              en: "Disaster victim reporting app" },
-    { id: "apws",                   name: "Automatic Plant Watering System",
+    { id: "apws",                   name: "Automatic Plant Watering System", slug: "apws",
       th: "เครื่องรดน้ำต้นไม้อัตโนมัติ",                en: "Automatic plant watering machine",
-      videos: ["2DMocGT5Phk", "Co5e_ErMyEI", "gLaoYPyxkNU", "_Orv_Qmnsk0"] },
-    { id: "rem-glasses",            name: "REM-Glasses",
+      videos: ["2DMocGT5Phk", "Co5e_ErMyEI", "gLaoYPyxkNU", "_Orv_Qmnsk0"],
+      gallery: "assets/apws/" },
+    { id: "rem-glasses",            name: "REM-Glasses",                    slug: "rem",
       th: "แว่นตาช่วยกระตุ้นฝันรู้ตัวขณะหลับ",          en: "Glasses that trigger lucid dreams" }
   ];
 
@@ -336,6 +474,12 @@
   const detailsEl     = document.getElementById("details");
   const detailsNameEl = document.getElementById("detailsName");
   const detailsVideosEl = document.getElementById("detailsVideos");
+  const galleryEl      = document.getElementById("detailsGallery");
+  const galleryTitleEl = document.getElementById("galleryTitle");
+  const galleryGridEl  = document.getElementById("galleryGrid");
+  const wipOverlay      = document.getElementById("wipOverlay");
+  const wipOverlayImg   = document.getElementById("wipOverlayImg");
+  const wipOverlayClose = document.getElementById("wipOverlayClose");
   const backBtn        = document.getElementById("backBtn");
   const backTextEl     = document.getElementById("backText");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -411,6 +555,7 @@
     });
     langBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     backTextEl.textContent = TEXT[lang].back;
+    galleryTitleEl.textContent = TEXT[lang].galleryTitle;
 
     try { localStorage.setItem("portfolio-lang", lang); } catch (e) {}
 
@@ -422,6 +567,134 @@
     applyLang(b.dataset.lang, false);
   }));
 
+  /* ---------- gallery: อ่านไฟล์รูปทั้งหมดในโฟลเดอร์ assets ---------- */
+  const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|avif)$/i;
+  const galleryCache = {};
+
+  function imageExists(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = src;
+    });
+  }
+
+  // 1) ลองอ่าน assets/<folder>/manifest.json ก่อน (วิธีที่แนะนำ เสถียรบนทุกโฮสต์)
+  // 2) ถ้าไม่มี manifest ลอง parse directory listing ของเซิร์ฟเวอร์ (ใช้ได้เมื่อเปิด autoindex)
+  // 3) ถ้ายังไม่เจอ ลอง "เดา" ชื่อไฟล์เลขลำดับ 01-12 ทีละนามสกุลที่พบบ่อย
+  async function listFolderImages(folder) {
+    if (galleryCache[folder]) return galleryCache[folder];
+    let files = [];
+
+    try {
+      const res = await fetch(folder + "manifest.json", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) files = data.filter((f) => IMAGE_EXT_RE.test(f));
+      }
+    } catch (e) {}
+
+    if (!files.length) {
+      try {
+        const res = await fetch(folder, { cache: "no-store" });
+        if (res.ok) {
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          files = Array.from(doc.querySelectorAll("a"))
+            .map((a) => a.getAttribute("href") || "")
+            .filter((href) => IMAGE_EXT_RE.test(href))
+            .map((href) => href.split("/").pop());
+        }
+      } catch (e) {}
+    }
+
+    if (!files.length) {
+      const exts = ["jpg", "jpeg", "png", "webp"];
+      const guesses = [];
+      for (let i = 1; i <= 12; i++) {
+        const n = String(i).padStart(2, "0");
+        exts.forEach((ext) => guesses.push(`${n}.${ext}`));
+      }
+      const checked = await Promise.all(
+        guesses.map(async (name) => ((await imageExists(folder + name)) ? name : null))
+      );
+      files = checked.filter(Boolean);
+    }
+
+    files = [...new Set(files)].slice(0, 12);
+    galleryCache[folder] = files;
+    return files;
+  }
+
+  async function renderGallery(folder) {
+    galleryGridEl.innerHTML = "";
+    if (!folder) {
+      galleryEl.classList.add("is-empty");
+      return;
+    }
+
+    const files = await listFolderImages(folder);
+    if (!files.length) {
+      galleryEl.classList.add("is-empty");
+      return;
+    }
+
+    files.forEach((file) => {
+      const src = folder + file;
+      const thumb = document.createElement("button");
+      thumb.type = "button";
+      thumb.className = "wip-thumb";
+      const img = document.createElement("img");
+      img.src = src;
+      img.loading = "lazy";
+      img.alt = "";
+      thumb.appendChild(img);
+      thumb.addEventListener("click", () => openHologram(src));
+      galleryGridEl.appendChild(thumb);
+    });
+
+    galleryEl.classList.remove("is-empty");
+  }
+
+  /* ---------- hologram viewer: เปิดรูปเต็มลอยขึ้นมากลางจอ ---------- */
+  let lastFocused = null;
+
+  function openHologram(src) {
+    lastFocused = document.activeElement;
+    wipOverlayImg.src = src;
+    wipOverlay.classList.add("is-open");
+    wipOverlayClose.focus();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeHologram() {
+    wipOverlay.classList.remove("is-open");
+    document.body.style.overflow = "";
+    if (lastFocused) lastFocused.focus();
+    setTimeout(() => { wipOverlayImg.src = ""; }, 200);
+  }
+
+  wipOverlayClose.addEventListener("click", closeHologram);
+  wipOverlay.addEventListener("click", (e) => {
+    if (e.target === wipOverlay) closeHologram();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && wipOverlay.classList.contains("is-open")) closeHologram();
+  });
+
+  /* ---------- ซิงค์ ?redirect=<slug> กับ URL ---------- */
+  function setUrlParam(slug) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("redirect", slug);
+    history.replaceState(null, "", url);
+  }
+  function clearUrlParam() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("redirect");
+    history.replaceState(null, "", url);
+  }
+
   /* ---------- เลือกผลงาน ---------- */
   // เลือกได้ทีละ 1 อัน / กดซ้ำเพื่อยกเลิก
   // อยากให้เลือกได้หลายอัน: ลบบรรทัด "items.forEach(...)" ในนี้ออก
@@ -432,6 +705,9 @@
     detailsNameEl.textContent = "";
     detailsVideosEl.innerHTML = "";
     detailsVideosEl.classList.add("is-empty");
+    galleryGridEl.innerHTML = "";
+    galleryEl.classList.add("is-empty");
+    clearUrlParam();
     window.dispatchEvent(new CustomEvent("portfolio:select", { detail: null }));
   }
 
@@ -468,6 +744,8 @@
     detailsNameEl.textContent = p.name;
     detailsEl.hidden = false;
     renderVideos(p.videos);
+    renderGallery(p.gallery);
+    setUrlParam(p.slug);
 
     window.dispatchEvent(new CustomEvent("portfolio:select", {
       detail: { id: p.id, name: p.name, desc: p[lang], lang }
@@ -489,6 +767,17 @@
     if (saved === "th" || saved === "en") startLang = saved;
   } catch (e) {}
   applyLang(startLang, true);
+
+  // ?redirect=<slug> → เปิดหน้ารายละเอียดโปรเจคนั้นทันทีตอนโหลดหน้า
+  (function handleRedirectParam() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("redirect");
+    if (!slug) return;
+    const project = PROJECTS.find((p) => p.slug === slug || p.id === slug);
+    if (!project) return;
+    const btn = grid.querySelector(`.item[data-id="${project.id}"]`);
+    if (btn) showDetails(btn);
+  })();
 
   // ตัวอย่างการรับค่า:
   // window.addEventListener("portfolio:select", (e) => console.log(e.detail));
