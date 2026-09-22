@@ -396,6 +396,65 @@
     word-break: break-all;
   }
 
+  /* ---------- APWS: แผนภาพวงจรไฟฟ้า (คั่นระหว่างคลิปวิดีโอกับ diagram) ---------- */
+  .apws-circuit {
+    margin-top: clamp(24px, 3vw, 36px);
+    width: 100%;
+  }
+
+  .apws-circuit.is-hidden {
+    display: none;
+  }
+
+  .apws-circuit-title {
+    margin: 0 0 clamp(12px, 1.6vw, 18px);
+    color: var(--text);
+    font-size: clamp(16px, 1.7vw, 22px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .apws-circuit-title::before {
+    content: "> ";
+    color: var(--sky);
+  }
+
+  .apws-circuit-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .apws-circuit-frame:focus-visible {
+    outline: 1px solid var(--sky);
+    outline-offset: 2px;
+  }
+
+  .apws-circuit-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    background: #000;
+    border: 1px solid var(--line);
+    transition: border-color 150ms linear, filter 150ms linear;
+  }
+  .apws-circuit-frame:hover .apws-circuit-img,
+  .apws-circuit-frame:focus-visible .apws-circuit-img {
+    border-color: var(--sky);
+    filter: brightness(1.06);
+  }
+
+  .apws-circuit-frame:hover .apws-diagram-zoom,
+  .apws-circuit-frame:focus-visible .apws-diagram-zoom {
+    opacity: 1;
+    transform: translateY(0);
+    border-color: var(--sky);
+    color: var(--sky);
+  }
+
   @media (max-width: 720px) {
     .details-videos { grid-template-columns: 1fr; }
 
@@ -445,7 +504,7 @@
     box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12), 0 0 24px rgba(56, 189, 248, 0.15);
     transition: background-color 150ms linear, box-shadow 150ms linear, transform 150ms ease-out;
   }
-  .wip-gallery-btn.is-visible { display: inline-flex; }
+  .wip-gallery-btn.is-visible { display: flex; }
   .wip-gallery-btn::before {
     content: "▦";
     font-size: 1.1em;
@@ -460,7 +519,7 @@
   .wip-gallery-btn .count { color: var(--text); opacity: 0.7; }
 
   @media (min-width: 640px) {
-    .wip-gallery-btn { width: auto; justify-content: flex-start; }
+    .wip-gallery-btn { width: auto; justify-content: center; margin-left: auto; margin-right: auto; }
   }
 
   /* ---------- สารบัญรูประหว่างทำชิ้นงาน (modal) ---------- */
@@ -679,6 +738,14 @@
     <h2 class="details-header"><span class="details-prompt">&gt;</span><span id="detailsName"></span><span class="cursor on" id="cursorDetails"></span></h2>
     <div class="details-videos is-empty" id="detailsVideos"></div>
 
+    <section class="apws-circuit is-hidden" id="apwsCircuit" aria-label="APWS circuit diagram">
+      <h3 class="apws-circuit-title" id="apwsCircuitTitle"></h3>
+      <button type="button" class="apws-circuit-frame" id="apwsCircuitFrame">
+        <img class="apws-circuit-img" id="apwsCircuitImg" src="assets/apws/circuit.png" alt="">
+        <span class="apws-diagram-zoom" aria-hidden="true">⤢</span>
+      </button>
+    </section>
+
     <section class="apws-diagrams is-hidden" id="apwsDiagrams" aria-label="APWS system diagrams">
       <div class="apws-diagram-grid" id="apwsDiagramGrid"></div>
     </section>
@@ -708,8 +775,8 @@
 <script>
   /* ---------- ข้อความ 2 ภาษา (แก้ชื่อโปรเจคได้ตรงนี้) ---------- */
   const TEXT = {
-    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน", galleryToggle: "ดูรูประหว่างทำชิ้นงาน", diagramHint: "แตะที่รูปเพื่อดูภาพขยาย" },
-    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos", galleryToggle: "View work-in-progress photos", diagramHint: "Tap the image to enlarge" }
+    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน", galleryToggle: "ดูรูประหว่างทำชิ้นงาน", diagramHint: "แตะที่รูปเพื่อดูภาพขยาย", circuitTitle: "แผนภาพวงจรไฟฟ้า" },
+    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos", galleryToggle: "View work-in-progress photos", diagramHint: "Tap the image to enlarge", circuitTitle: "Circuit diagram" }
   };
 
   /* ---------- APWS: ข้อมูลแผนภาพระบบ (2 ภาษา) ---------- */
@@ -809,6 +876,10 @@
   const detailsVideosEl = document.getElementById("detailsVideos");
   const apwsDiagramsEl = document.getElementById("apwsDiagrams");
   const apwsDiagramGridEl = document.getElementById("apwsDiagramGrid");
+  const apwsCircuitEl = document.getElementById("apwsCircuit");
+  const apwsCircuitTitleEl = document.getElementById("apwsCircuitTitle");
+  const apwsCircuitFrameEl = document.getElementById("apwsCircuitFrame");
+  const apwsCircuitImgEl = document.getElementById("apwsCircuitImg");
   const galleryTitleEl = document.getElementById("galleryTitle");
   const galleryGridEl  = document.getElementById("galleryGrid");
   const galleryToggleBtn   = document.getElementById("galleryToggleBtn");
@@ -1074,6 +1145,7 @@
     detailsVideosEl.innerHTML = "";
     detailsVideosEl.classList.add("is-empty");
     apwsDiagramsEl.classList.add("is-hidden");
+    apwsCircuitEl.classList.add("is-hidden");
     galleryGridEl.innerHTML = "";
     galleryToggleBtn.classList.remove("is-visible");
     closeGalleryIndex();
@@ -1081,9 +1153,27 @@
     window.dispatchEvent(new CustomEvent("portfolio:select", { detail: null }));
   }
 
+  function renderApwsCircuit(project, lang) {
+    if (!apwsCircuitEl || !apwsCircuitFrameEl || !apwsCircuitImgEl || !apwsCircuitTitleEl) return;
+    lang = lang || document.documentElement.lang || "th";
+
+    if (!project || project.id !== "apws") {
+      apwsCircuitEl.classList.add("is-hidden");
+      return;
+    }
+
+    apwsCircuitEl.classList.remove("is-hidden");
+    apwsCircuitTitleEl.textContent = TEXT[lang].circuitTitle;
+    apwsCircuitImgEl.alt = TEXT[lang].circuitTitle;
+    apwsCircuitFrameEl.setAttribute("aria-label", `${TEXT[lang].circuitTitle} — ${TEXT[lang].diagramHint}`);
+    apwsCircuitFrameEl.onclick = () => openHologram(apwsCircuitImgEl.getAttribute("src"));
+  }
+
   function renderApwsDiagrams(project, lang) {
     if (!apwsDiagramsEl || !apwsDiagramGridEl) return;
     lang = lang || document.documentElement.lang || "th";
+
+    renderApwsCircuit(project, lang);
 
     if (!project || project.id !== "apws") {
       apwsDiagramsEl.classList.add("is-hidden");
