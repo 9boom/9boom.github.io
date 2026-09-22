@@ -263,6 +263,20 @@
     border: 1px solid var(--line);
   }
 
+  .apws-diagram-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .apws-diagram-frame:focus-visible {
+    outline: 1px solid var(--sky);
+    outline-offset: 2px;
+  }
+
   .apws-diagram img {
     display: block;
     width: 100%;
@@ -271,6 +285,46 @@
     object-fit: contain;
     background: #000;
     border: 1px solid var(--line);
+    transition: border-color 150ms linear, filter 150ms linear;
+  }
+  .apws-diagram-frame:hover img,
+  .apws-diagram-frame:focus-visible img {
+    border-color: var(--sky);
+    filter: brightness(1.06);
+  }
+
+  .apws-diagram-zoom {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 150ms linear, transform 150ms linear, border-color 150ms linear, color 150ms linear;
+  }
+  .apws-diagram-frame:hover .apws-diagram-zoom,
+  .apws-diagram-frame:focus-visible .apws-diagram-zoom {
+    opacity: 1;
+    transform: translateY(0);
+    border-color: var(--sky);
+    color: var(--sky);
+  }
+
+  .apws-diagram-hint {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    opacity: 0.75;
   }
 
   .apws-diagram-title {
@@ -281,11 +335,65 @@
     font-weight: 600;
   }
 
-  .apws-diagram-description {
-    margin: 0;
+  .apws-diagram-body { margin: 0; }
+
+  .apws-diagram-intro {
+    margin: 0 0 14px;
     color: var(--muted);
     font-size: clamp(13px, 1.1vw, 15px);
     line-height: 1.7;
+  }
+
+  .apws-diagram-section { margin: 0; }
+  .apws-diagram-section + .apws-diagram-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .apws-diagram-section-title {
+    margin: 0 0 8px;
+    color: var(--sky);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .apws-diagram-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .apws-diagram-list li {
+    position: relative;
+    padding-left: 16px;
+    color: var(--muted);
+    font-size: clamp(13px, 1.1vw, 15px);
+    line-height: 1.6;
+  }
+  .apws-diagram-list li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--sky);
+    opacity: 0.7;
+  }
+
+  .apws-diagram-list li b,
+  .apws-diagram-list li strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .apws-diagram-code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: var(--sky);
+    word-break: break-all;
   }
 
   @media (max-width: 720px) {
@@ -572,52 +680,7 @@
     <div class="details-videos is-empty" id="detailsVideos"></div>
 
     <section class="apws-diagrams is-hidden" id="apwsDiagrams" aria-label="APWS system diagrams">
-      <div class="apws-diagram-grid">
-        <figure class="apws-diagram">
-          <img
-            src="assets/apws/watering_logic.png"
-            alt="Watering Logic diagram"
-            loading="lazy"
-          >
-          <figcaption>
-            <h3 class="apws-diagram-title">Watering Logic</h3>
-            <p class="apws-diagram-description">
-              แผนภาพแสดงลำดับการทำงานของระบบรดน้ำอัตโนมัติ
-              จากเงื่อนไขที่ผู้ใช้งานตั้งจากแอปพลิเคชั่นควบคุมจากทั้ง 3 Sensors โดยในแอปพลิเคชั่น
-              
-              เซนเซอร์: RTC module (เก็บข้อมูลเวลา), เซนเซอร์วัดความชื้นในดิน, เซนเซอร์วัดอุณหภูมิในอากาศ
-
-              เงื่อนไขที่จะจริงที่ผู้ใช้สามารถกำหนดได้: อุณหภูมิสูงกว่าที่กำหนด, ความชื้นต่ำกว่าที่กำหนด, ถึงเวลารดน้ำตามที่ตั้งไว้
-              
-              ผู้ใช้สามารถตั้งเลือกโหมดในการตั้งค่าโหมดการรดน้ำได้คือ:
-              โหมด AND: เงื่อนไขทั้ง 3 จาก sensors ต้องเป็นจริง ระบบถึงจะยอมรดน้ำ มิฉะนั้นระบบจะหยุดรดน้ำ
-              โหมด OR: เงื่อนไขทั้ง 3 จาก sensors มีอันใดอันนึงเป็นจริง ก็จะสั่งรดน้ำ มิฉะนั้นจะหยุดรดน้ำ
-            </p>
-          </figcaption>
-        </figure>
-
-        <figure class="apws-diagram">
-          <img
-            src="assets/apws/การแสกน.png"
-            alt="Scanning diagram"
-            loading="lazy"
-          >
-          <figcaption>
-            <h3 class="apws-diagram-title">การสแกน</h3>
-            <p class="apws-diagram-description">
-              แผนภาพอธิบายกระบวนการสแกนเพื่อค้นหา esp32 โดยหลักการคือแอปพลิเคชั่น Android ในมือถือ
-
-Tech Stack:
-ฝั่งแอปพลิเคชั่น: Java (Android Studio) (สำหรับโลจิคแสกนเครือข่าย) และ WebView สำหรับแสดงหน้าควบคุม 
-ฝั่ง ESP32: C++ (Arduino IDE) สำหรับ Server ใน ESP32
-
-โดยกระบวนการคือ ทันทีที่ทำการเปิดแอปพลิเคชั่น ระบบจะทำการดึงค่า subnet mask ของเครือข่าย WiFi ที่กำลังเชื่อมต่ออยู่ เช่นได้ค่า 255.255.252.0 ระบบก็จำคำณวนได้ช่วงขอบเขตของวงแลนมา เช่น ตั้งแต่ 10.0.0.1 จนถึง 10.0.3.254
- 
-จากนั้นระบบจะทำการแสกน IP ทั้งหมดเพื่อหาพอร์ต TCP Protocol ที่เปิดพอร์ต 52024 เมื่อพบ ระบบจะเอา IP มารวมกันจนได้ ENDPOINT API ของ ESP32 เพื่อให้ หน้าเว็บควบคุมฝั่งแอบพลิเคชั่น สามารถส่งคำสั่งติดต่อสั่งการ ESP32 ได้ เช่น http://10.0.3.234:52025/api/open_valve
-            </p>
-          </figcaption>
-        </figure>
-      </div>
+      <div class="apws-diagram-grid" id="apwsDiagramGrid"></div>
     </section>
 
     <button type="button" class="wip-gallery-btn" id="galleryToggleBtn">
@@ -645,9 +708,74 @@ Tech Stack:
 <script>
   /* ---------- ข้อความ 2 ภาษา (แก้ชื่อโปรเจคได้ตรงนี้) ---------- */
   const TEXT = {
-    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน", galleryToggle: "ดูรูประหว่างทำชิ้นงาน" },
-    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos", galleryToggle: "View work-in-progress photos" }
+    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน", galleryToggle: "ดูรูประหว่างทำชิ้นงาน", diagramHint: "แตะที่รูปเพื่อดูภาพขยาย" },
+    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos", galleryToggle: "View work-in-progress photos", diagramHint: "Tap the image to enlarge" }
   };
+
+  /* ---------- APWS: ข้อมูลแผนภาพระบบ (2 ภาษา) ---------- */
+  const APWS_DIAGRAMS = [
+    {
+      src: "assets/apws/watering_logic.png",
+      alt: { th: "แผนภาพตรรกะการรดน้ำ", en: "Watering logic diagram" },
+      title: { th: "ตรรกะการรดน้ำ (Watering Logic)", en: "Watering Logic" },
+      intro: {
+        th: "แผนภาพแสดงลำดับการทำงานของระบบรดน้ำอัตโนมัติ ตามเงื่อนไขที่ผู้ใช้ตั้งค่าไว้ในแอปพลิเคชันควบคุม โดยอ้างอิงข้อมูลจากเซนเซอร์ทั้ง 3 ตัว",
+        en: "Diagram of the automatic watering sequence, driven by conditions the user sets in the control app and readings from all three sensors."
+      },
+      sections: [
+        {
+          heading: { th: "เซนเซอร์ที่ใช้งาน", en: "Sensors used" },
+          items: [
+            { th: "RTC module — เก็บข้อมูลเวลา", en: "RTC module — keeps track of time" },
+            { th: "เซนเซอร์วัดความชื้นในดิน", en: "Soil moisture sensor" },
+            { th: "เซนเซอร์วัดอุณหภูมิในอากาศ", en: "Air temperature sensor" }
+          ]
+        },
+        {
+          heading: { th: "เงื่อนไขที่ผู้ใช้กำหนดได้", en: "Conditions the user can set" },
+          items: [
+            { th: "อุณหภูมิสูงกว่าที่กำหนด", en: "Temperature above the set value" },
+            { th: "ความชื้นต่ำกว่าที่กำหนด", en: "Moisture below the set value" },
+            { th: "ถึงเวลารดน้ำตามที่ตั้งไว้", en: "Scheduled watering time reached" }
+          ]
+        },
+        {
+          heading: { th: "โหมดการทำงานที่เลือกได้", en: "Selectable modes" },
+          items: [
+            { th: "<b>โหมด AND</b> — เงื่อนไขทั้ง 3 จากเซนเซอร์ต้องเป็นจริงทั้งหมด ระบบถึงจะรดน้ำ มิฉะนั้นจะหยุด", en: "<b>AND mode</b> — all 3 sensor conditions must be true before the system waters; otherwise it stops" },
+            { th: "<b>โหมด OR</b> — เงื่อนไขข้อใดข้อหนึ่งจากเซนเซอร์เป็นจริง ระบบก็จะสั่งรดน้ำ มิฉะนั้นจะหยุด", en: "<b>OR mode</b> — if any one sensor condition is true, the system waters; otherwise it stops" }
+          ]
+        }
+      ]
+    },
+    {
+      src: "assets/apws/การแสกน.png",
+      alt: { th: "แผนภาพการสแกนหา ESP32", en: "ESP32 scanning diagram" },
+      title: { th: "การสแกนหา ESP32", en: "ESP32 Scanning" },
+      intro: {
+        th: "แผนภาพอธิบายกระบวนการสแกนเครือข่ายเพื่อค้นหา ESP32 โดยหลักการทำงานคือแอปพลิเคชัน Android บนมือถือเป็นผู้ค้นหาและเชื่อมต่อ",
+        en: "Diagram of the network-scanning process used to locate the ESP32, driven by the Android app on the phone."
+      },
+      sections: [
+        {
+          heading: { th: "Tech Stack", en: "Tech Stack" },
+          items: [
+            { th: "ฝั่งแอปพลิเคชัน: Java (Android Studio) สำหรับโลจิกสแกนเครือข่าย และ WebView สำหรับแสดงหน้าควบคุม", en: "App side: Java (Android Studio) for the network-scan logic, plus WebView for the control screen" },
+            { th: "ฝั่ง ESP32: C++ (Arduino IDE) สำหรับ Server บน ESP32", en: "ESP32 side: C++ (Arduino IDE) running the server on the ESP32" }
+          ]
+        },
+        {
+          heading: { th: "ขั้นตอนการสแกน", en: "Scanning steps" },
+          items: [
+            { th: "ทันทีที่เปิดแอปพลิเคชัน ระบบจะดึงค่า Subnet Mask ของเครือข่าย Wi-Fi ที่กำลังเชื่อมต่ออยู่ เช่น <span class=\"apws-diagram-code\">255.255.252.0</span>", en: "As soon as the app opens, it reads the Subnet Mask of the connected Wi-Fi network, e.g. <span class=\"apws-diagram-code\">255.255.252.0</span>" },
+            { th: "จากนั้นคำนวณขอบเขตของวง LAN ได้ เช่น ตั้งแต่ <span class=\"apws-diagram-code\">10.0.0.1</span> ถึง <span class=\"apws-diagram-code\">10.0.3.254</span>", en: "It then calculates the LAN's IP range, e.g. from <span class=\"apws-diagram-code\">10.0.0.1</span> to <span class=\"apws-diagram-code\">10.0.3.254</span>" },
+            { th: "ระบบจะสแกนทุก IP ในช่วงนั้น เพื่อหาเครื่องที่เปิดพอร์ต TCP <span class=\"apws-diagram-code\">52024</span> ไว้", en: "It scans every IP in that range to find the device with TCP port <span class=\"apws-diagram-code\">52024</span> open" },
+            { th: "เมื่อพบ ระบบจะนำ IP มารวมกันจนได้ Endpoint API ของ ESP32 เพื่อให้หน้าเว็บควบคุมส่งคำสั่งได้ เช่น <span class=\"apws-diagram-code\">http://10.0.3.234:52025/api/open_valve</span>", en: "Once found, it assembles the IP into the ESP32's API endpoint so the control page can send commands, e.g. <span class=\"apws-diagram-code\">http://10.0.3.234:52025/api/open_valve</span>" }
+          ]
+        }
+      ]
+    }
+  ];
 
   // name = ชื่อหลัก (ไม่เปลี่ยนตามภาษา) / th, en = ชื่อรองที่เปลี่ยนตามภาษา
   // slug = รหัสย่อ ใช้กับ URL แบบ ?redirect=<slug> เพื่อเข้าถึงโปรเจคนี้ได้ทันที
@@ -680,6 +808,7 @@ Tech Stack:
   const detailsNameEl = document.getElementById("detailsName");
   const detailsVideosEl = document.getElementById("detailsVideos");
   const apwsDiagramsEl = document.getElementById("apwsDiagrams");
+  const apwsDiagramGridEl = document.getElementById("apwsDiagramGrid");
   const galleryTitleEl = document.getElementById("galleryTitle");
   const galleryGridEl  = document.getElementById("galleryGrid");
   const galleryToggleBtn   = document.getElementById("galleryToggleBtn");
@@ -767,6 +896,7 @@ Tech Stack:
     backTextEl.textContent = TEXT[lang].back;
     galleryTitleEl.textContent = TEXT[lang].galleryTitle;
     galleryToggleText.textContent = TEXT[lang].galleryToggle;
+    renderApwsDiagrams(currentProject, lang);
 
     try { localStorage.setItem("portfolio-lang", lang); } catch (e) {}
 
@@ -933,7 +1063,10 @@ Tech Stack:
   /* ---------- เลือกผลงาน ---------- */
   // เลือกได้ทีละ 1 อัน / กดซ้ำเพื่อยกเลิก
   // อยากให้เลือกได้หลายอัน: ลบบรรทัด "items.forEach(...)" ในนี้ออก
+  let currentProject = null;
+
   function showGrid() {
+    currentProject = null;
     items.forEach((el) => el.setAttribute("aria-pressed", "false"));
     grid.classList.remove("is-hidden");
     detailsEl.hidden = true;
@@ -948,14 +1081,88 @@ Tech Stack:
     window.dispatchEvent(new CustomEvent("portfolio:select", { detail: null }));
   }
 
-  function renderApwsDiagrams(project) {
-    if (!apwsDiagramsEl) return;
+  function renderApwsDiagrams(project, lang) {
+    if (!apwsDiagramsEl || !apwsDiagramGridEl) return;
+    lang = lang || document.documentElement.lang || "th";
 
-    if (project && project.id === "apws") {
-      apwsDiagramsEl.classList.remove("is-hidden");
-    } else {
+    if (!project || project.id !== "apws") {
       apwsDiagramsEl.classList.add("is-hidden");
+      apwsDiagramGridEl.innerHTML = "";
+      return;
     }
+
+    apwsDiagramsEl.classList.remove("is-hidden");
+    apwsDiagramGridEl.innerHTML = "";
+
+    APWS_DIAGRAMS.forEach((d) => {
+      const figure = document.createElement("figure");
+      figure.className = "apws-diagram";
+
+      const frame = document.createElement("button");
+      frame.type = "button";
+      frame.className = "apws-diagram-frame";
+      frame.setAttribute("aria-label", `${d.title[lang]} — ${TEXT[lang].diagramHint}`);
+
+      const img = document.createElement("img");
+      img.src = d.src;
+      img.alt = d.alt[lang];
+      img.loading = "lazy";
+      frame.appendChild(img);
+
+      const zoom = document.createElement("span");
+      zoom.className = "apws-diagram-zoom";
+      zoom.setAttribute("aria-hidden", "true");
+      zoom.textContent = "⤢";
+      frame.appendChild(zoom);
+
+      frame.addEventListener("click", () => openHologram(d.src));
+      figure.appendChild(frame);
+
+      const hint = document.createElement("p");
+      hint.className = "apws-diagram-hint";
+      hint.textContent = TEXT[lang].diagramHint;
+      figure.appendChild(hint);
+
+      const caption = document.createElement("figcaption");
+
+      const title = document.createElement("h3");
+      title.className = "apws-diagram-title";
+      title.textContent = d.title[lang];
+      caption.appendChild(title);
+
+      const body = document.createElement("div");
+      body.className = "apws-diagram-body";
+
+      const intro = document.createElement("p");
+      intro.className = "apws-diagram-intro";
+      intro.textContent = d.intro[lang];
+      body.appendChild(intro);
+
+      d.sections.forEach((section) => {
+        const sec = document.createElement("div");
+        sec.className = "apws-diagram-section";
+
+        const heading = document.createElement("h4");
+        heading.className = "apws-diagram-section-title";
+        heading.textContent = section.heading[lang];
+        sec.appendChild(heading);
+
+        const list = document.createElement("ul");
+        list.className = "apws-diagram-list";
+        section.items.forEach((item) => {
+          const li = document.createElement("li");
+          li.innerHTML = item[lang];
+          list.appendChild(li);
+        });
+        sec.appendChild(list);
+
+        body.appendChild(sec);
+      });
+
+      caption.appendChild(body);
+      figure.appendChild(caption);
+      apwsDiagramGridEl.appendChild(figure);
+    });
   }
 
   function renderVideos(videos) {
@@ -983,6 +1190,7 @@ Tech Stack:
   function showDetails(btn) {
     const lang = document.documentElement.lang;
     const p = PROJECTS.find((x) => x.id === btn.dataset.id);
+    currentProject = p;
 
     items.forEach((el) => el.setAttribute("aria-pressed", "false"));
     btn.setAttribute("aria-pressed", "true");
@@ -992,7 +1200,7 @@ Tech Stack:
     detailsEl.hidden = false;
     closeGalleryIndex();
     renderVideos(p.videos);
-    renderApwsDiagrams(p);
+    renderApwsDiagrams(p, lang);
     renderGallery(p.gallery);
     setUrlParam(p.slug);
 
