@@ -317,16 +317,86 @@
     .details-videos { grid-template-columns: 1fr; }
   }
 
-  /* ---------- gallery รูประหว่างทำชิ้นงาน ---------- */
-  .wip-gallery { margin-top: clamp(20px, 3vw, 32px); }
-  .wip-gallery.is-empty { display: none; }
+  /* ---------- ปุ่มเปิดรูประหว่างทำชิ้นงาน ---------- */
+  .wip-gallery-btn {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: clamp(20px, 3vw, 32px);
+    padding: 10px 16px;
+    background: var(--cell);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 120ms linear, color 120ms linear, border-color 120ms linear;
+  }
+  .wip-gallery-btn.is-visible { display: inline-flex; }
+  .wip-gallery-btn:hover { color: var(--sky); border-color: var(--sky); background: var(--cell-hover); }
+  .wip-gallery-btn:focus-visible { outline: 1px solid var(--sky); outline-offset: -3px; }
+  .wip-gallery-btn .count { color: var(--sky); }
+
+  /* ---------- สารบัญรูประหว่างทำชิ้นงาน (modal) ---------- */
+  .wip-index {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 5vw, 48px);
+    background: rgba(0, 0, 0, 0.82);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms linear;
+  }
+  .wip-index.is-open { opacity: 1; pointer-events: auto; }
+
+  .wip-index-panel {
+    position: relative;
+    width: min(100%, 980px);
+    max-height: 84vh;
+    overflow-y: auto;
+    padding: clamp(20px, 3vw, 32px);
+    background: var(--cell);
+    border: 1px solid var(--line);
+    transform: translateY(24px);
+    opacity: 0;
+    transition: transform 220ms ease-out, opacity 200ms linear;
+  }
+  .wip-index.is-open .wip-index-panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .wip-index-close {
+    position: absolute;
+    top: clamp(14px, 2vw, 20px);
+    right: clamp(14px, 2vw, 20px);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cell);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 120ms linear, border-color 120ms linear;
+  }
+  .wip-index-close:hover { color: var(--sky); border-color: var(--sky); }
+  .wip-index-close:focus-visible { outline: 1px solid var(--sky); outline-offset: -3px; }
 
   .wip-gallery-title {
     font-size: 13px;
     color: var(--muted);
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
+    padding-right: 40px;
   }
 
   .wip-grid {
@@ -443,6 +513,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .wip-overlay-figure { transition: none; }
+    .wip-index-panel { transition: none; }
   }
 
   @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -518,12 +589,19 @@
       </div>
     </section>
 
-    <div class="wip-gallery is-empty" id="detailsGallery">
-      <div class="wip-gallery-title" id="galleryTitle"></div>
-      <div class="wip-grid" id="galleryGrid"></div>
-    </div>
+    <button type="button" class="wip-gallery-btn" id="galleryToggleBtn">
+      <span id="galleryToggleText"></span><span class="count" id="galleryToggleCount"></span>
+    </button>
   </section>
 
+</div>
+
+<div class="wip-index" id="wipIndex" aria-hidden="true">
+  <div class="wip-index-panel">
+    <button type="button" class="wip-index-close" id="wipIndexClose" aria-label="Close">&times;</button>
+    <div class="wip-gallery-title" id="galleryTitle"></div>
+    <div class="wip-grid" id="galleryGrid"></div>
+  </div>
 </div>
 
 <div class="wip-overlay" id="wipOverlay">
@@ -536,8 +614,8 @@
 <script>
   /* ---------- ข้อความ 2 ภาษา (แก้ชื่อโปรเจคได้ตรงนี้) ---------- */
   const TEXT = {
-    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน" },
-    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos" }
+    th: { name: "พงศกร ศรีวิชัย",       sub: "พอร์ตโฟลิโอ", group: "ผลงาน", back: "กลับ", galleryTitle: "รูประหว่างทำชิ้นงาน", galleryToggle: "ดูรูประหว่างทำชิ้นงาน" },
+    en: { name: "Pongsakorn Sriwichai", sub: "Portfolio",    group: "Works",  back: "Back", galleryTitle: "Work-in-progress photos", galleryToggle: "View work-in-progress photos" }
   };
 
   // name = ชื่อหลัก (ไม่เปลี่ยนตามภาษา) / th, en = ชื่อรองที่เปลี่ยนตามภาษา
@@ -571,9 +649,13 @@
   const detailsNameEl = document.getElementById("detailsName");
   const detailsVideosEl = document.getElementById("detailsVideos");
   const apwsDiagramsEl = document.getElementById("apwsDiagrams");
-  const galleryEl      = document.getElementById("detailsGallery");
   const galleryTitleEl = document.getElementById("galleryTitle");
   const galleryGridEl  = document.getElementById("galleryGrid");
+  const galleryToggleBtn   = document.getElementById("galleryToggleBtn");
+  const galleryToggleText  = document.getElementById("galleryToggleText");
+  const galleryToggleCount = document.getElementById("galleryToggleCount");
+  const wipIndex        = document.getElementById("wipIndex");
+  const wipIndexClose   = document.getElementById("wipIndexClose");
   const wipOverlay      = document.getElementById("wipOverlay");
   const wipOverlayImg   = document.getElementById("wipOverlayImg");
   const wipOverlayClose = document.getElementById("wipOverlayClose");
@@ -653,6 +735,7 @@
     langBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     backTextEl.textContent = TEXT[lang].back;
     galleryTitleEl.textContent = TEXT[lang].galleryTitle;
+    galleryToggleText.textContent = TEXT[lang].galleryToggle;
 
     try { localStorage.setItem("portfolio-lang", lang); } catch (e) {}
 
@@ -726,16 +809,12 @@
 
   async function renderGallery(folder) {
     galleryGridEl.innerHTML = "";
-    if (!folder) {
-      galleryEl.classList.add("is-empty");
-      return;
-    }
+    galleryToggleBtn.classList.remove("is-visible");
+    galleryToggleCount.textContent = "";
+    if (!folder) return;
 
     const files = await listFolderImages(folder);
-    if (!files.length) {
-      galleryEl.classList.add("is-empty");
-      return;
-    }
+    if (!files.length) return;
 
     files.forEach((file) => {
       const src = folder + file;
@@ -751,8 +830,36 @@
       galleryGridEl.appendChild(thumb);
     });
 
-    galleryEl.classList.remove("is-empty");
+    galleryToggleCount.textContent = `(${files.length})`;
+    galleryToggleBtn.classList.add("is-visible");
   }
+
+  /* ---------- สารบัญรูป (modal): เปิด/ปิด ---------- */
+  let galleryLastFocused = null;
+
+  function openGalleryIndex() {
+    galleryLastFocused = document.activeElement;
+    wipIndex.classList.add("is-open");
+    wipIndex.setAttribute("aria-hidden", "false");
+    wipIndexClose.focus();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeGalleryIndex() {
+    wipIndex.classList.remove("is-open");
+    wipIndex.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if (galleryLastFocused) galleryLastFocused.focus();
+  }
+
+  galleryToggleBtn.addEventListener("click", openGalleryIndex);
+  wipIndexClose.addEventListener("click", closeGalleryIndex);
+  wipIndex.addEventListener("click", (e) => {
+    if (e.target === wipIndex) closeGalleryIndex();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && wipIndex.classList.contains("is-open")) closeGalleryIndex();
+  });
 
   /* ---------- hologram viewer: เปิดรูปเต็มลอยขึ้นมากลางจอ ---------- */
   let lastFocused = null;
@@ -804,7 +911,8 @@
     detailsVideosEl.classList.add("is-empty");
     apwsDiagramsEl.classList.add("is-hidden");
     galleryGridEl.innerHTML = "";
-    galleryEl.classList.add("is-empty");
+    galleryToggleBtn.classList.remove("is-visible");
+    closeGalleryIndex();
     clearUrlParam();
     window.dispatchEvent(new CustomEvent("portfolio:select", { detail: null }));
   }
@@ -851,6 +959,7 @@
     grid.classList.add("is-hidden");
     detailsNameEl.textContent = p.name;
     detailsEl.hidden = false;
+    closeGalleryIndex();
     renderVideos(p.videos);
     renderApwsDiagrams(p);
     renderGallery(p.gallery);
