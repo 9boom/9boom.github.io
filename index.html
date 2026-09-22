@@ -1281,6 +1281,20 @@
     } catch (e) {}
   }
 
+  /* ---------- บังคับปิด caption/subtitle ผ่าน postMessage (cc_load_policy=0 อย่างเดียวไม่พอ ถ้าเบราว์เซอร์เคยเปิด caption ไว้กับ youtube.com) ---------- */
+  function postDisableCaptions(iframe) {
+    try {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "unloadModule", args: ["captions"] }),
+        "https://www.youtube.com"
+      );
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "setOption", args: ["captions", "track", {}] }),
+        "https://www.youtube.com"
+      );
+    } catch (e) {}
+  }
+
   function startListening(iframe) {
     try {
       iframe.contentWindow.postMessage(
@@ -1291,27 +1305,32 @@
   }
 
   function muteYoutubeIframe(iframe) {
-    // ชั้นที่ 1: query param mute=1 + controls=0 + disablekb=1 ตอนสร้าง src (ไม่มีปุ่ม/คีย์ลัดให้กดเปิดเสียงเลย)
-    // ชั้นที่ 2: ยิง postMessage สั่ง mute ซ้ำทันทีที่โหลดเสร็จ (เผื่อ player ยังไม่พร้อมตอนตั้ง mute=1)
+    // ชั้นที่ 1: query param mute=1 + controls=0 + disablekb=1 + cc_load_policy=0 ตอนสร้าง src
+    // ชั้นที่ 2: ยิง postMessage สั่ง mute + ปิด caption ซ้ำทันทีที่โหลดเสร็จ (เผื่อ player ยังไม่พร้อมตอน set param)
     iframe.addEventListener("load", () => {
       postMute(iframe);
-      startListening(iframe); // ให้ player ส่ง infoDelivery กลับมาเรื่อย ๆ เพื่อคอยเช็ค/สั่ง mute ซ้ำแบบเรียลไทม์
+      postDisableCaptions(iframe);
+      startListening(iframe); // ให้ player ส่ง infoDelivery กลับมาเรื่อย ๆ เพื่อคอยเช็ค/สั่งซ้ำแบบเรียลไทม์
       // ชั้นที่ 3: ยิงซ้ำเป็นช่วง ๆ หลังโหลด เผื่อ player เพิ่งพร้อมรับคำสั่งช้ากว่านี้
       let tries = 0;
       const t = setInterval(() => {
         tries++;
         postMute(iframe);
+        postDisableCaptions(iframe);
         if (tries >= 5) clearInterval(t);
       }, 400);
     });
   }
 
-  // ชั้นที่ 4: ฟัง state change / any-message จาก player แล้วยิง mute กำกับซ้ำ เผื่อ autoplay เปลี่ยน state แล้วเสียงหลุดกลับมา
+  // ชั้นที่ 4: ฟัง state change / any-message จาก player แล้วยิง mute + ปิด caption กำกับซ้ำ เผื่อ state เปลี่ยนแล้วหลุดกลับมา
   window.addEventListener("message", (e) => {
     if (e.origin !== "https://www.youtube.com") return;
     const iframes = document.querySelectorAll(".video-frame iframe");
     iframes.forEach((iframe) => {
-      if (iframe.contentWindow === e.source) postMute(iframe);
+      if (iframe.contentWindow === e.source) {
+        postMute(iframe);
+        postDisableCaptions(iframe);
+      }
     });
   });
 
