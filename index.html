@@ -321,21 +321,39 @@
   .wip-gallery-btn {
     display: none;
     align-items: center;
-    gap: 8px;
-    margin-top: clamp(20px, 3vw, 32px);
-    padding: 10px 16px;
-    background: var(--cell);
-    color: var(--muted);
-    border: 1px solid var(--line);
+    gap: 12px;
+    margin-top: clamp(24px, 3.5vw, 40px);
+    padding: clamp(14px, 2vw, 18px) clamp(22px, 3vw, 30px);
+    width: 100%;
+    justify-content: center;
+    background: var(--sky-dim);
+    color: var(--sky);
+    border: 1px solid var(--sky);
     font: inherit;
-    font-size: 14px;
+    font-size: clamp(15px, 1.6vw, 18px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    transition: background-color 120ms linear, color 120ms linear, border-color 120ms linear;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12), 0 0 24px rgba(56, 189, 248, 0.15);
+    transition: background-color 150ms linear, box-shadow 150ms linear, transform 150ms ease-out;
   }
   .wip-gallery-btn.is-visible { display: inline-flex; }
-  .wip-gallery-btn:hover { color: var(--sky); border-color: var(--sky); background: var(--cell-hover); }
-  .wip-gallery-btn:focus-visible { outline: 1px solid var(--sky); outline-offset: -3px; }
-  .wip-gallery-btn .count { color: var(--sky); }
+  .wip-gallery-btn::before {
+    content: "▦";
+    font-size: 1.1em;
+  }
+  .wip-gallery-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25), 0 0 36px rgba(56, 189, 248, 0.30);
+    transform: translateY(-1px);
+  }
+  .wip-gallery-btn:active { transform: translateY(0); }
+  .wip-gallery-btn:focus-visible { outline: 1px solid var(--sky); outline-offset: 3px; }
+  .wip-gallery-btn .count { color: var(--text); opacity: 0.7; }
+
+  @media (min-width: 640px) {
+    .wip-gallery-btn { width: auto; justify-content: flex-start; }
+  }
 
   /* ---------- สารบัญรูประหว่างทำชิ้นงาน (modal) ---------- */
   .wip-index {
