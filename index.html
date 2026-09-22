@@ -583,8 +583,15 @@
             <h3 class="apws-diagram-title">Watering Logic</h3>
             <p class="apws-diagram-description">
               แผนภาพแสดงลำดับการทำงานของระบบรดน้ำอัตโนมัติ
-              ตั้งแต่การตรวจสอบเงื่อนไขและข้อมูลจากระบบ
-              ไปจนถึงการตัดสินใจสั่งงานระบบรดน้ำ
+              จากเงื่อนไขที่ผู้ใช้งานตั้งจากแอปพลิเคชั่นควบคุมจากทั้ง 3 Sensors โดยในแอปพลิเคชั่น
+              
+              เซนเซอร์: RTC module (เก็บข้อมูลเวลา), เซนเซอร์วัดความชื้นในดิน, เซนเซอร์วัดอุณหภูมิในอากาศ
+
+              เงื่อนไขที่จะจริงที่ผู้ใช้สามารถกำหนดได้: อุณหภูมิสูงกว่าที่กำหนด, ความชื้นต่ำกว่าที่กำหนด, ถึงเวลารดน้ำตามที่ตั้งไว้
+              
+              ผู้ใช้สามารถตั้งเลือกโหมดในการตั้งค่าโหมดการรดน้ำได้คือ:
+              โหมด AND: เงื่อนไขทั้ง 3 จาก sensors ต้องเป็นจริง ระบบถึงจะยอมรดน้ำ มิฉะนั้นระบบจะหยุดรดน้ำ
+              โหมด OR: เงื่อนไขทั้ง 3 จาก sensors มีอันใดอันนึงเป็นจริง ก็จะสั่งรดน้ำ มิฉะนั้นจะหยุดรดน้ำ
             </p>
           </figcaption>
         </figure>
@@ -650,7 +657,7 @@
     { id: "promptchuay",            name: "PromptChuay",                    slug: "prompt",
       th: "แอปพลิเคชันรายงานผู้ประสบภัย",              en: "Disaster victim reporting app" },
     { id: "apws",                   name: "Automatic Plant Watering System", slug: "apws",
-      th: "เครื่องรดน้ำต้นไม้อัตโนมัติ",                en: "Automatic plant watering machine",
+      th: "รายละเอียดเพิ่มเติม: เครื่องรดน้ำต้นไม้อัตโนมัติ",                en: "More details: Automatic plant watering machine",
       videos: ["2DMocGT5Phk", "Co5e_ErMyEI", "gLaoYPyxkNU", "_Orv_Qmnsk0"],
       gallery: "assets/apws/" },
     { id: "rem-glasses",            name: "REM-Glasses",                    slug: "rem",
