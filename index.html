@@ -240,6 +240,62 @@
   }
   .details-videos.is-empty { display: none; }
 
+  /* ---------- APWS diagrams ---------- */
+  .apws-diagrams {
+    margin-top: clamp(24px, 3vw, 36px);
+  }
+
+  .apws-diagrams.is-hidden {
+    display: none;
+  }
+
+  .apws-diagram-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(16px, 2.5vw, 28px);
+  }
+
+  .apws-diagram {
+    min-width: 0;
+    margin: 0;
+    padding: clamp(14px, 2vw, 20px);
+    background: var(--cell);
+    border: 1px solid var(--line);
+  }
+
+  .apws-diagram img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    background: #000;
+    border: 1px solid var(--line);
+  }
+
+  .apws-diagram-title {
+    margin: 14px 0 8px;
+    color: var(--text);
+    font-size: clamp(16px, 1.5vw, 20px);
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  .apws-diagram-description {
+    margin: 0;
+    color: var(--muted);
+    font-size: clamp(13px, 1.1vw, 15px);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 720px) {
+    .details-videos { grid-template-columns: 1fr; }
+
+    .apws-diagram-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .video-frame {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -425,6 +481,43 @@
     <button type="button" class="back-btn" id="backBtn"><span aria-hidden="true">&larr;</span><span id="backText"></span></button>
     <h2 class="details-header"><span class="details-prompt">&gt;</span><span id="detailsName"></span><span class="cursor on" id="cursorDetails"></span></h2>
     <div class="details-videos is-empty" id="detailsVideos"></div>
+
+    <section class="apws-diagrams is-hidden" id="apwsDiagrams" aria-label="APWS system diagrams">
+      <div class="apws-diagram-grid">
+        <figure class="apws-diagram">
+          <img
+            src="assets/apws/watering_logic.png"
+            alt="Watering Logic diagram"
+            loading="lazy"
+          >
+          <figcaption>
+            <h3 class="apws-diagram-title">Watering Logic</h3>
+            <p class="apws-diagram-description">
+              แผนภาพแสดงลำดับการทำงานของระบบรดน้ำอัตโนมัติ
+              ตั้งแต่การตรวจสอบเงื่อนไขและข้อมูลจากระบบ
+              ไปจนถึงการตัดสินใจสั่งงานระบบรดน้ำ
+            </p>
+          </figcaption>
+        </figure>
+
+        <figure class="apws-diagram">
+          <img
+            src="assets/apws/การแสกน.png"
+            alt="Scanning diagram"
+            loading="lazy"
+          >
+          <figcaption>
+            <h3 class="apws-diagram-title">การสแกน</h3>
+            <p class="apws-diagram-description">
+              แผนภาพอธิบายกระบวนการสแกนและตรวจสอบข้อมูล
+              เพื่อให้ระบบสามารถนำข้อมูลที่ได้ไปใช้ในการทำงาน
+              และตัดสินใจตามเงื่อนไขที่กำหนด
+            </p>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
     <div class="wip-gallery is-empty" id="detailsGallery">
       <div class="wip-gallery-title" id="galleryTitle"></div>
       <div class="wip-grid" id="galleryGrid"></div>
@@ -477,6 +570,7 @@
   const detailsEl     = document.getElementById("details");
   const detailsNameEl = document.getElementById("detailsName");
   const detailsVideosEl = document.getElementById("detailsVideos");
+  const apwsDiagramsEl = document.getElementById("apwsDiagrams");
   const galleryEl      = document.getElementById("detailsGallery");
   const galleryTitleEl = document.getElementById("galleryTitle");
   const galleryGridEl  = document.getElementById("galleryGrid");
@@ -708,10 +802,21 @@
     detailsNameEl.textContent = "";
     detailsVideosEl.innerHTML = "";
     detailsVideosEl.classList.add("is-empty");
+    apwsDiagramsEl.classList.add("is-hidden");
     galleryGridEl.innerHTML = "";
     galleryEl.classList.add("is-empty");
     clearUrlParam();
     window.dispatchEvent(new CustomEvent("portfolio:select", { detail: null }));
+  }
+
+  function renderApwsDiagrams(project) {
+    if (!apwsDiagramsEl) return;
+
+    if (project && project.id === "apws") {
+      apwsDiagramsEl.classList.remove("is-hidden");
+    } else {
+      apwsDiagramsEl.classList.add("is-hidden");
+    }
   }
 
   function renderVideos(videos) {
@@ -747,6 +852,7 @@
     detailsNameEl.textContent = p.name;
     detailsEl.hidden = false;
     renderVideos(p.videos);
+    renderApwsDiagrams(p);
     renderGallery(p.gallery);
     setUrlParam(p.slug);
 
