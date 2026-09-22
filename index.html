@@ -1253,17 +1253,54 @@
       const frame = document.createElement("div");
       frame.className = "video-frame";
       const iframe = document.createElement("iframe");
-      iframe.src = `https://www.youtube.com/embed/${videoId}`;
+      // mute=1 + enablejsapi=1: ให้เริ่มแบบปิดเสียงเสมอ และเปิดช่องให้สั่ง mute() ซ้ำผ่าน postMessage เป็น fallback
+      const origin = window.location.origin;
+      iframe.src = `https://www.youtube.com/embed/${videoId}?mute=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(origin)}`;
       iframe.title = "YouTube video player";
       iframe.loading = "lazy";
-      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allow = "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
       iframe.referrerPolicy = "strict-origin-when-cross-origin";
       iframe.allowFullscreen = true;
+      muteYoutubeIframe(iframe);
       frame.appendChild(iframe);
       detailsVideosEl.appendChild(frame);
     });
     detailsVideosEl.classList.remove("is-empty");
   }
+
+  /* ---------- บังคับปิดเสียง iframe YouTube (มี fallback หลายชั้น) ---------- */
+  function postMute(iframe) {
+    try {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "mute", args: [] }),
+        "https://www.youtube.com"
+      );
+    } catch (e) {}
+  }
+
+  function muteYoutubeIframe(iframe) {
+    // ชั้นที่ 1: query param mute=1 ตอนสร้าง src (ทำไปแล้วด้านบน)
+    // ชั้นที่ 2: ยิง postMessage สั่ง mute ซ้ำทันทีที่โหลดเสร็จ (เผื่อ player ยังไม่พร้อมตอนตั้ง mute=1)
+    iframe.addEventListener("load", () => {
+      postMute(iframe);
+      // ชั้นที่ 3: ยิงซ้ำเป็นช่วง ๆ หลังโหลด เผื่อ player เพิ่งพร้อมรับคำสั่งช้ากว่านี้
+      let tries = 0;
+      const t = setInterval(() => {
+        tries++;
+        postMute(iframe);
+        if (tries >= 5) clearInterval(t);
+      }, 400);
+    });
+  }
+
+  // ชั้นที่ 4: ฟัง state change / any-message จาก player แล้วยิง mute กำกับซ้ำ เผื่อ autoplay เปลี่ยน state แล้วเสียงหลุดกลับมา
+  window.addEventListener("message", (e) => {
+    if (e.origin !== "https://www.youtube.com") return;
+    const iframes = document.querySelectorAll(".video-frame iframe");
+    iframes.forEach((iframe) => {
+      if (iframe.contentWindow === e.source) postMute(iframe);
+    });
+  });
 
   function showDetails(btn) {
     const lang = document.documentElement.lang;
